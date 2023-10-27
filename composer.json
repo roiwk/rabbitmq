@@ -1,0 +1,32 @@
+{
+  "name": "roiwk/rabbitmq",
+  "type": "library",
+  "license": "MIT",
+  "description": "rabbitmq async(workerman) and sync Client, Producer, Consumer",
+  "keywords": [
+    "rabbitmq",
+    "amqp",
+    "queue",
+    "workerman",
+    "webman",
+    "plugin"
+  ],
+  "authors": [
+    {
+      "name": "roiwk",
+      "email": "vip@roiwk.cn"
+    }
+  ],
+  "minimum-stability": "stable",
+  "require": {
+    "php": "^8.0",
+    "workerman/rabbitmq": "^1.0",
+    "psr/log": "^1.0||^2.0||^3.0",
+    "illuminate/collections": "^8.0|^9.0|^10.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Roiwk\\Rabbitmq\\": "src"
+    }
+  }
+}
