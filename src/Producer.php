@@ -38,7 +38,7 @@ class Producer
     {
     }
 
-    public static function connect(array $rabbitmqConfig, LoggerInterface $logger = null)
+    public static function connect(array $rabbitmqConfig, LoggerInterface $logger = null): self
     {
         return new self($rabbitmqConfig, $logger);
     }
