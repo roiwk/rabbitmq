@@ -158,7 +158,7 @@ class Client
             $channel = $client->channel();
             $this->syncDeclare($channel);
             $channel->consume(
-                function (Message $message, Channel $channel, \Bunny\Client $client) use ($consumer) {
+                function (Message $message, Channel $channel, \Bunny\Client $client) use ($consumer, $reject) {
                     $this->logger?->info('Received:['.getmypid().']: '.$message->content, [$message]);
                     try {
                         call_user_func_array($consumer, [$message, $channel, $client]);
@@ -166,7 +166,7 @@ class Client
                         if (!$this->consume['noAck']) {
                             $channel->nack($message);
                         }
-                        throw $throw;
+                        $reject($throw);
                     }
                 },
                 $this->queue,
