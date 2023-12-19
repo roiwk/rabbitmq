@@ -119,10 +119,11 @@ class Producer
             $channel = $client->channel();
             $this->declare($channel, $routingOrQueue, $exchange, $exchangeType);
             $published = $channel->publish($data, $headers, $exchange, $routingOrQueue, $mandatory, $immediate);
-            $channel->close();
-            $client->disconnect();
         } catch (\Throwable $throwable) {
             $this->logger?->error('['.getmypid().']:'.$throwable->getMessage().PHP_EOL.$throwable->getTraceAsString(), [__CLASS__]);
+        } finally {
+            isset($channel) && $channel->close();
+            isset($client) && $client->disconnect();
         }
 
         return $published ?? false;
