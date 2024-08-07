@@ -38,7 +38,9 @@ class GroupConsumers
                     continue;
                 }
 
-                $consumer = Container::make($class, [$this->rabbitmqConfig, $this->logger]);
+                $consumer = Container::make($class, [
+                    'rabbitmqConfig' => $this->rabbitmqConfig, 'logger' => $this->logger
+                ]);
                 $consumer->onWorkerStart($worker);
             }
         }
