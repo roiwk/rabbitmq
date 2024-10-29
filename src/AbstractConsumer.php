@@ -64,6 +64,14 @@ abstract class AbstractConsumer implements Consumable
         protected array $rabbitmqConfig,
         protected ?LoggerInterface $logger = null,
     ){
+        if ($this->async) {
+            $this->rabbitmqConfig = array_merge_recursive($this->rabbitmqConfig, [
+                'async_connect' => true,
+                'persistent' => true,
+                'path' => '/',
+            ]);
+        }
+
         $this->init();
     }
 

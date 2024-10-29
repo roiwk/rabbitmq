@@ -6,7 +6,6 @@ use Bunny\Channel;
 use Bunny\Message;
 use Illuminate\Support\Arr;
 use Psr\Log\LoggerInterface;
-use Workerman\RabbitMQ\Client as AsyncClient;
 
 class Client
 {
@@ -31,7 +30,7 @@ class Client
             return $this->config['error_callback'];
         } else {
             return function (\Throwable $throwable) {
-                $this->logger?->error('['.getmypid().']:'.$throwable->getMessage().PHP_EOL, [$throwable->getTraceAsString()]);
+                $this->logger?->error('['.getmypid().']Consumer:'.$throwable->getMessage().PHP_EOL, [$throwable->getTraceAsString()]);
             };
         }
     }
@@ -81,44 +80,48 @@ class Client
     {
         $reject = $this->getErrorCallback();
 
-        (new AsyncClient($this->config, $this->logger))->connect()
-            ->then(function (AsyncClient $client) {
-                return $client->channel();
-            }, $reject)
-            ->then(function (Channel $channel) {
-                return $channel->qos($this->qos['prefetch_size'] ?? 0, $this->qos['prefetch_count'] ?? 0)
-                    ->then(function () use ($channel) {
-                        return $this->asyncDeclare($channel)->then(function () use ($channel) {
-                            return $channel;
+        try {
+            (new AsyncClient($this->config, $this->logger))->connect()
+                ->then(function (AsyncClient $client) {
+                    return $client->channel();
+                }, $reject)
+                ->then(function (Channel $channel) {
+                    return $channel->qos($this->qos['prefetch_size'] ?? 0, $this->qos['prefetch_count'] ?? 0)
+                        ->then(function () use ($channel) {
+                            return $this->asyncDeclare($channel)->then(function () use ($channel) {
+                                return $channel;
+                            });
                         });
-                    });
-            }, $reject)
-            ->then(function (Channel $channel) use ($reject, $consumer) {
-                $this->logger?->debug('Waiting:['.getmypid().'] Waiting for messages.', []);
-                $channel->consume(
-                    function (Message $message, Channel $channel, AsyncClient $client) use ($reject, $consumer) {
-                        $this->logger?->info('Received:['.getmypid().']: '.$message->content, [$message]);
+                }, $reject)
+                ->then(function (Channel $channel) use ($reject, $consumer) {
+                    $this->logger?->debug('Waiting:['.getmypid().'] Waiting for messages.', []);
+                    $channel->run(
+                        function (Message $message, Channel $channel, AsyncClient $client) use ($reject, $consumer) {
+                            $this->logger?->info('Received:['.getmypid().']: '.$message->content, [$message]);
 
-                        try {
-                            call_user_func_array($consumer, [$message, $channel, $client]);
-                        } catch (\Throwable $throw) {
-                            if (!$this->consume['noAck']) {
-                                $channel->nack($message);
+                            try {
+                                call_user_func_array($consumer, [$message, $channel, $client]);
+                            } catch (\Throwable $throw) {
+                                if (!$this->consume['noAck']) {
+                                    $channel->nack($message);
+                                }
+                                $reject($throw);
                             }
-                            $reject($throw);
-                        }
 
-                        return;
-                    },
-                    $this->queue,
-                    $this->consume['consumerTag'],
-                    $this->consume['noLocal'],
-                    $this->consume['noAck'],
-                    $this->consume['exclusive'],
-                    $this->consume['nowait'],
-                    $this->consume['arguments'],
-                );
-            }, $reject);
+                            return;
+                        },
+                        $this->queue,
+                        $this->consume['consumerTag'],
+                        $this->consume['noLocal'],
+                        $this->consume['noAck'],
+                        $this->consume['exclusive'],
+                        $this->consume['nowait'],
+                        $this->consume['arguments'],
+                    );
+                }, $reject);
+        } catch (\Throwable $throwable) {
+            $reject($throwable);
+        }
     }
 
     public function syncDeclare(Channel $channel)
