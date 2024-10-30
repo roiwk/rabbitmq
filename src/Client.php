@@ -95,7 +95,7 @@ class Client
                 }, $reject)
                 ->then(function (Channel $channel) use ($reject, $consumer) {
                     $this->logger?->debug('Waiting:['.getmypid().'] Waiting for messages.', []);
-                    $channel->run(
+                    $channel->consume(
                         function (Message $message, Channel $channel, AsyncClient $client) use ($reject, $consumer) {
                             $this->logger?->info('Received:['.getmypid().']: '.$message->content, [$message]);
 
