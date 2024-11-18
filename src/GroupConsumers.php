@@ -3,7 +3,6 @@
 namespace Roiwk\Rabbitmq;
 
 use Psr\Log\LoggerInterface;
-use support\Container;
 
 /**
  * 分组消费.(模仿webman-redis queue).
@@ -38,9 +37,13 @@ class GroupConsumers
                     continue;
                 }
 
-                $consumer = Container::make($class, [
-                    'rabbitmqConfig' => $this->rabbitmqConfig, 'logger' => $this->logger
-                ]);
+                if (class_exists('support\Container', false)) {
+                    $consumer = \support\Container::make($class, [
+                        'rabbitmqConfig' => $this->rabbitmqConfig, 'logger' => $this->logger
+                    ]);
+                } else {
+                    $consumer = new $class($this->rabbitmqConfig, $this->logger);
+                }
                 $consumer->onWorkerStart($worker);
             }
         }
