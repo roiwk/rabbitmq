@@ -21,7 +21,8 @@
     "php": "^8.0",
     "psr/log": "^1.0||^2.0||^3.0",
     "illuminate/collections": "^8.0|^9.0|^10.0",
-    "bunny/bunny": "^0.5.5"
+    "bunny/bunny": "^0.5.5",
+    "workerman/rabbitmq": "^2.0"
   },
   "autoload": {
     "psr-4": {
@@ -30,6 +31,7 @@
   },
   "require-dev": {
     "monolog/monolog": "^2.0|^3.0",
-    "workerman/workerman": "^4.0|^5.0@beta"
+    "workerman/workerman": "^5.0",
+    "revolt/event-loop": "^1.0"
   }
 }

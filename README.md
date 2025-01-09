@@ -6,7 +6,10 @@ rabbitmq 是一个异步（workerman）和同步的PHP客户端，用于异步�
 
 # Dependencies 依赖
 
-php >= 8.0
+|Version Tag|Dependencies|
+|-----|---|
+|^v1.0| php >=8.0  workerman >= 4.0|
+|^v2.0| php >=8.1  workerman >= 5.0|
 
 # Install 安装
 

@@ -14,6 +14,7 @@ if (file_exists(__DIR__ . '/../../../../../vendor/autoload.php')) {
 }
 
 $worker = new Worker();
+$worker->eventLoop = \Workerman\Events\Revolt::class;
 
 $config = require __DIR__ . '/../config.php';
 $log = require __DIR__ . '/../log.php';
