@@ -6,6 +6,7 @@ use Bunny\Channel;
 use Bunny\Client;
 use Illuminate\Support\Arr;
 use Psr\Log\LoggerInterface;
+use Workerman\RabbitMQ\Client as AsyncClient;
 
 class Producer
 {
@@ -168,8 +169,7 @@ class Producer
                     return $channel->close()->then(function () use ($client) {
                         return $client;
                     });
-                }, $reject)
-            ;
+                }, $reject);
         } catch (\Throwable $throwable) {
             $reject($throwable);
         }

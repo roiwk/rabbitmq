@@ -6,6 +6,7 @@ use Bunny\Channel;
 use Bunny\Message;
 use Illuminate\Support\Arr;
 use Psr\Log\LoggerInterface;
+use Workerman\RabbitMQ\Client as AsyncClient;
 
 class Client
 {
