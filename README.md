@@ -19,7 +19,7 @@ composer require roiwk/rabbitmq
 
 # Usage 使用
 
-[All demo](./example/)
+[All demo](./examples/)
 
 ## Config Demo
 
@@ -61,6 +61,8 @@ Worker::runAll();
 ```php
 // 同步消费者  sync Consumer
 
+use Bunny\Channel;
+use Bunny\Message;
 use Bunny\AbstractClient;
 use Roiwk\Rabbitmq\AbstractConsumer;
 
@@ -90,6 +92,8 @@ $consumer->onWorkerStart(null);
 ```php
 // 异步消费者  async Consumer(workerman)
 
+use Bunny\Channel;
+use Bunny\Message;
 use Workerman\Worker;
 use Bunny\AbstractClient;
 use Roiwk\Rabbitmq\AbstractConsumer;
