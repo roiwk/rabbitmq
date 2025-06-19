@@ -4,7 +4,6 @@ namespace Roiwk\Rabbitmq;
 
 use Bunny\Channel;
 use Bunny\Message;
-use Illuminate\Support\Arr;
 use Psr\Log\LoggerInterface;
 use Workerman\RabbitMQ\Client as AsyncClient;
 
@@ -157,7 +156,7 @@ class Client
     {
         try {
             $reject = $this->getErrorCallback();
-            $rabbitmqConfig = Arr::only($this->config, ['host', 'port', 'vhost', 'user', 'password']);
+            $rabbitmqConfig = array_intersect_key($this->config, array_flip(['host', 'port', 'vhost', 'user', 'password']));
             $client = (new \Bunny\Client($rabbitmqConfig))->connect();
             $channel = $client->channel();
             $this->syncDeclare($channel);

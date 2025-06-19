@@ -4,7 +4,6 @@ namespace Roiwk\Rabbitmq;
 
 use Bunny\Channel;
 use Bunny\Client;
-use Illuminate\Support\Arr;
 use Psr\Log\LoggerInterface;
 use Workerman\RabbitMQ\Client as AsyncClient;
 
@@ -180,7 +179,7 @@ class Producer
     ) {
         $this->setDeclare($exchangeOrQueueDeclare, $exchange, $exchangeType);
 
-        $rabbitmqConfig = Arr::only($this->rabbitmqConfig, ['host', 'port', 'vhost', 'user', 'password']);
+        $rabbitmqConfig = array_intersect_key($this->rabbitmqConfig, array_flip(['host', 'port', 'vhost', 'user', 'password']));
 
         try {
             $client = $this->getSyncConnect($rabbitmqConfig);
