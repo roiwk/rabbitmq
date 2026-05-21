@@ -94,14 +94,10 @@ abstract class AbstractConsumer implements Consumable
     public function onWorkerStart($worker): void
     {
         $client = $this->getClient();
-        if (is_a(static::class, AbstractConsumer::class, true) || is_subclass_of(static::class, Consumable::class)) {
-            if ($this->async) {
-                $client->asyncProcess([$this, 'consume']);
-            } else {
-                $client->syncProcess([$this, 'consume']);
-            }
+        if ($this->async) {
+            $client->asyncProcess([$this, 'consume']);
         } else {
-            return;
+            $client->syncProcess([$this, 'consume']);
         }
     }
 }

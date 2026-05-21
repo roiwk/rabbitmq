@@ -101,6 +101,9 @@ class Client
 
                             try {
                                 call_user_func_array($consumer, [$message, $channel, $client]);
+                                if (!$this->consume['noAck']) {
+                                    $channel->ack($message);
+                                }
                             } catch (\Throwable $throw) {
                                 if (!$this->consume['noAck']) {
                                     $channel->nack($message);

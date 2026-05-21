@@ -59,10 +59,8 @@ class Producer
             return self::$instances[$key];
         }
 
-        if (empty(self::$instances)) {
-            $obj = new self($rabbitmqConfig, $logger);
-            self::$instances[$key] = $obj;
-        }
+        $obj = new self($rabbitmqConfig, $logger);
+        self::$instances[$key] = $obj;
 
         return self::$instances[$key];
     }
@@ -92,20 +90,13 @@ class Producer
 
     protected function getSyncConnect(array $rabbitmqConfig)
     {
-        static $synConnect = null;
-        static $synClient = null;
-
-        if (null === $synConnect) {
-            $synClient = (new Client($rabbitmqConfig));
-            $synConnect = $synClient->connect();
-        }
-
-        if ($synClient->isConnected()) {
-            return $synConnect;
-        }
-        $synConnect = $synClient->connect();
-
-        return $synConnect;
+        // Bug fix: 不再使用 static 变量缓存连接实例。
+        // 在 Workerman 多进程模型下，static 变量在 fork 后会被子进程继承，
+        // 继承的 socket fd 已失效但 isConnected() 可能仍返回 true，
+        // 导致消息写入到失效 fd 后静默丢失。
+        // 每次 publishSync 均新建连接，用完即关，保证可靠性。
+        $client = new Client($rabbitmqConfig);
+        return $client->connect();
     }
 
     protected function setDeclare(array $exchangeOrQueueDeclare, string $exchange = '', string $exchangeType = '')
@@ -182,16 +173,18 @@ class Producer
 
         $rabbitmqConfig = Arr::only($this->rabbitmqConfig, ['host', 'port', 'vhost', 'user', 'password']);
 
+        $client = null;
         try {
             $client = $this->getSyncConnect($rabbitmqConfig);
             $channel = $client->channel();
             $this->declare($channel, $routingOrQueue, $exchange, $exchangeType);
             $published = $channel->publish($data, $headers, $exchange, $routingOrQueue, $mandatory, $immediate);
-            $client->removeChannel($channel->getChannelId());
         } catch (\Throwable $throwable) {
-            $this->logger?->error('['.getmypid().']PUBLIAH SYNC:'.$throwable->getMessage().PHP_EOL.$throwable->getTraceAsString(), [__CLASS__]);
+            $this->logger?->error('['.getmypid().']PUBLISH SYNC:'.$throwable->getMessage().PHP_EOL.$throwable->getTraceAsString(), [__CLASS__]);
         } finally {
+            // 每次新建连接，用完后必须主动断开，避免 fd 泄漏
             isset($channel) && $channel->close();
+            $client?->disconnect();
         }
 
         return $published ?? false;
